@@ -130,15 +130,59 @@ I tested five questions covered by the corpus and five clearly out-of-scope ques
 
 | Criterion | Target | Run 1 | Run 2 | Run 3 | Verdict |
 |---|---|---|---|---|---|
-| 1. Retrieved chunk contains the answer | 4 of 5 |  |  |  |  |
-| 2. Every answer names a source | 5 of 5 |  |  |  |  |
-| 3. Gate stops out-of-corpus questions | 4 of 5 |  |  |  |  |
-| 4. | | | | | |
-| 5. | | | | | |
+| 1. Retrieved chunk contains the answer | 4 of 5 | 5/5 | 5/5 | 5/5 | MET |
+| 2. Every answer names a source | 5 of 5 | 5/5 | 5/5 | 5/5 | MET |
+| 3. Gate stops out-of-corpus questions | 4 of 5 | 5/5 | 5/5 | 5/5 | MET |
+| 4. Numerical facts are preserved | 4 of 5 | 5/5 | 5/5 | 5/5 | MET |
+| 5. Retrieved chunk contains enough context | 4 of 5 | 5/5 | 5/5 | 5/5 | MET |
 
 <!-- Underneath, paste the REAL output for each criterion from one of your
      runs — the actual text your system produced, not a description of it.
      Name the file and function that produced it. -->
+
+### Baseline Evidence
+
+The baseline evaluation was produced by `run_eval.py` using the questions in `questions.py`, with retrieval and generation handled by the existing RAG pipeline.
+
+**Criterion 1 — Retrieved chunk contains the answer**
+
+For the housing lottery question, the system retrieved `admin_housing_lottery.txt` and answered:
+
+> Housing lottery numbers come out the second week of March.
+
+The retrieved document states: "Numbers come out the second week of March and selection runs over four evenings."
+
+**Criterion 2 — Every answer names a source**
+
+For the Kestrel Commons question, the system answered:
+
+> The wait times at Kestrel Commons are 20 to 25 minutes between 12:15 and 1:00.
+
+> Source: `dining_kestrel_commons.txt` (also mentioned in `dining_kestrel_commons_followup.txt`).
+
+**Criterion 3 — Gate stops out-of-corpus questions**
+
+The five out-of-scope questions were all refused by the relevance gate:
+
+> Gate refused 5 of 5 out-of-scope questions.
+
+**Criterion 4 — Numerical facts are preserved**
+
+For the library-hours question, the system answered:
+
+> The library is open until 2am during the term.
+
+The retrieved source `study_library_hours.txt` states:
+
+> Open until 2am during term, until 10pm during reading week.
+
+**Criterion 5 — Retrieved chunk contains enough context**
+
+For the winter clothing question, the retrieved `winter_gear.txt` contained:
+
+> The buildings are heated to the point of being too warm, so layers matter more than a heavy coat.
+
+This chunk contains the recommendation and the reason for it without requiring a neighboring chunk.
 
 ## Verdicts
 
@@ -153,11 +197,11 @@ I tested five questions covered by the corpus and five clearly out-of-scope ques
 
 | # | Criterion | Verdict | How I decided |
 |---|---|---|---|
-| 1 |  |  |  |
-| 2 |  |  |  |
-| 3 |  |  |  |
-| 4 |  |  |  |
-| 5 |  |  |  |
+| 1 | Retrieved chunk contains the answer | MET | All 5 test questions retrieved a chunk containing the information needed to answer the question, exceeding the target of 4 of 5. |
+| 2 | Every answer names a source | MET | All 5 generated answers named at least one source document in all three runs. |
+| 3 | Gate stops out-of-corpus questions | MET | The relevance gate refused all 5 out-of-scope questions, exceeding the target of 4 of 5. |
+| 4 | Numerical facts are preserved | MET | Numerical facts used in the generated answers matched the retrieved source documents, including the 20–25 minute Kestrel wait time and the library's 2am closing time. |
+| 5 | Retrieved chunk contains enough context | MET | All 5 retrieved answer-containing chunks provided enough context to understand the relevant information without requiring a neighboring chunk. |
 
 ## Diagnoses
 
@@ -179,11 +223,21 @@ I tested five questions covered by the corpus and five clearly out-of-scope ques
 
      Milestone 3. -->
 
+No acceptance criteria were missed in the baseline evaluation. All five criteria met their original targets.
+
+The automatic scorer did report failures for the housing lottery and laundry questions. After inspecting the outputs, these were not retrieval or generation failures. Both answers contained the expected information. The failures came from the exact-string scorer comparing a lowercased expected phrase against an answer that was not lowercased, making the comparison case-sensitive.
+
+Because the system met all five original criteria, I would tighten Criterion 1 from 4 of 5 to 5 of 5. For this corpus, the test questions have specific answers that are directly present in the documents, so requiring successful retrieval for all five questions would be a stronger standard.
+
 ## The Improvement
 
 **What I changed:**
 
+I tightened the grounding instruction in `generate.py`. Previously, the prompt explicitly required only numerical facts to be preserved exactly. I expanded this instruction to require exact preservation of factual details including numbers, dates, names, times, and specific recommendations.
+
 **Why I picked it:**
+
+The baseline showed that retrieval, chunking, and the relevance gate were already meeting their targets, so changing those stages was not supported by the diagnosis. I instead targeted generation fidelity to reduce the chance that correct retrieved information would be altered during paraphrasing.
 
 <!-- Connect it to a specific diagnosis above in one sentence. If you can't,
      you picked a fix because it sounded impressive. -->
@@ -195,11 +249,11 @@ I tested five questions covered by the corpus and five clearly out-of-scope ques
 
 | Criterion | Target | Run 1 | Run 2 | Run 3 | Verdict |
 |---|---|---|---|---|---|
-| 1. Retrieved chunk contains the answer | 4 of 5 |  |  |  |  |
-| 2. Every answer names a source | 5 of 5 |  |  |  |  |
-| 3. Gate stops out-of-corpus questions | 4 of 5 |  |  |  |  |
-| 4. | | | | | |
-| 5. | | | | | |
+| 1. Retrieved chunk contains the answer | 4 of 5 | 5/5 | 5/5 | 5/5 | MET |
+| 2. Every answer names a source | 5 of 5 | 5/5 | 5/5 | 5/5 | MET |
+| 3. Gate stops out-of-corpus questions | 4 of 5 | 5/5 | 5/5 | 5/5 | MET |
+| 4. Numerical facts are preserved | 4 of 5 | 5/5 | 5/5 | 5/5 | MET |
+| 5. Retrieved chunk contains enough context | 4 of 5 | 5/5 | 5/5 | 5/5 | MET |
 
 **Did it help?**
 
@@ -209,6 +263,10 @@ I tested five questions covered by the corpus and five clearly out-of-scope ques
      tell.
 
      Milestone 4. -->
+
+The system continued to meet all five acceptance criteria after the grounding prompt was tightened, so the change did not introduce any regressions. The generated answers continued to preserve the factual details from the retrieved documents.
+
+The raw question-level evaluation also changed from 3 of 5 passing to 5 of 5 passing. However, this improvement should not be attributed to the grounding prompt. During diagnosis, I found and corrected a case-sensitivity bug in `scorer.py` that had incorrectly marked the housing lottery and laundry answers as failures even though they contained the expected information. After correcting the evaluator, all five questions passed in all three runs.
 
 ## What's Still Broken
 
@@ -220,9 +278,25 @@ I tested five questions covered by the corpus and five clearly out-of-scope ques
 
      Milestone 5. -->
 
+All five acceptance criteria were met after the improvement, so there are no known failures against the current test criteria.
+
+One limitation is that the evaluation only uses five in-corpus questions and five out-of-scope questions. This is enough for the acceptance criteria defined for this project, but a larger and more varied test set could reveal retrieval or generation failures that these questions do not cover.
+
 ## What I'd Do Differently
 
 <!-- Knowing what you know now — which of your five criteria would you write
      differently, and why?
 
      Milestone 5. -->
+
+Knowing what I know now, I would make Criterion 1 stricter. I originally required the retrieved chunks to contain the answer for at least 4 of 5 test questions. Since all five questions retrieved the correct information consistently, I would change the target to 5 of 5.
+
+I would also make the automated scorer case-insensitive from the beginning. The original scorer lowercased the expected phrase but not the generated answer, which caused two correct answers to be reported as failures because of capitalization differences. This showed me that evaluation code itself needs to be tested, not just the RAG system.
+
+## How I Used AI
+
+**1.** I used AI to help interpret the baseline evaluation results and compare them against the five acceptance criteria. This helped separate actual RAG performance from the automatic scorer results. I manually verified the retrieved source documents and confirmed that the expected information was present.
+
+**2.** I used AI to help diagnose why two correct answers were marked as failures. We inspected `questions.py` and `scorer.py` and found that the expected answer was lowercased while the generated answer was not, causing case-sensitive comparisons to fail. I corrected the scorer and verified the fix by running the evaluation again.
+
+**3.** I used AI to reason about which single system improvement was appropriate for Milestone 4. Since retrieval, chunking, and the relevance gate already met their targets, I chose to tighten the grounding instruction in `generate.py` rather than changing a stage that was already working.

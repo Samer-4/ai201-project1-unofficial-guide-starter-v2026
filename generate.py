@@ -279,7 +279,7 @@ Rules:
 - Use only the information in the documents below. Do not use anything you know from elsewhere.
 - If the documents don't cover the question, say you don't have enough information. Do not guess.
 - Name the document your answer came from, using the filename given in each excerpt.
-- Preserve numerical facts exactly as they appear in the source. Do not alter or approximate numbers when paraphrasing.
+- Preserve factual details exactly as they appear in the source, including numbers, dates, names, times, and specific recommendations. Do not alter or approximate these details when paraphrasing.
 - Be brief. Two or three sentences is usually enough."""
 
 
